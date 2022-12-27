@@ -1,34 +1,44 @@
+import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+class Post {
+  constructor(
+    public userId: number,
+    public id: string,
+    public title: string,
+    public body: string
+  ) {}
+}
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.css"]
 })
-export class AppComponent {
-  title = "Angular 10 and Promises Example";
-
-  API_KEY = "e40d07f00b094602953cc3bf8537477e";
-
-  constructor(private httpClient: HttpClient) {}
-
+export class AppComponent implements OnInit{
+  api: string = 'https://jsonplaceholder.typicode.com/posts';
+  data = [];
+  constructor(private http: HttpClient) {}
   ngOnInit() {
-    console.log("Angular 10 Promises");
-    this.fetchDataAsPromise()
-      .then((data) => {
-        console.log(JSON.stringify(data));
-      })
-      .catch((error) => {
-        console.log("Promise rejected with " + JSON.stringify(error));
-      });
+    this.getPosts();
   }
-
-  fetchDataAsPromise() {
-    return this.httpClient
-    .get(
-        `https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=${this.API_KEY}`
-      )
-      .toPromise();
+  getPosts() {
+    const promise = new Promise<void>((resolve, reject) => {
+      const apiURL = this.api;
+      this.http.get<Post[]>(apiURL).subscribe({
+        next: (res: any) => {
+          this.data = res.map((res: any) => {
+            return new Post(res.userId, res.id, res.title, res.body);
+          });
+          resolve();
+        },
+        error: (err: any) => {
+          reject(err);
+        },
+        complete: () => {
+          console.log('complete');
+        },
+      });
+    });
+    return promise;
   }
 }
